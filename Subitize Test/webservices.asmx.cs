@@ -16,7 +16,6 @@ namespace Subitize_Test
     // [System.Web.Script.Services.ScriptService]
     public class webservices : System.Web.Services.WebService
     {
-
         [WebMethod]
         public bool ValidateAuthCode(string authcode)
         {
