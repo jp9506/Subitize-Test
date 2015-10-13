@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using D = Microsoft.Practices.EnterpriseLibrary.Data;
+﻿using D = Microsoft.Practices.EnterpriseLibrary.Data;
 using System.Data.Common;
 using System.Data;
 
@@ -66,25 +61,163 @@ namespace Subitize_Test
                 return false;
             }
         }
-        private static bool SelectUser(ref User user) { }
-        private static bool UpdateUser(ref User user) { }
-        private static bool UpdateUserResult(string authcode, int testid, ref ImageArray result)
+        private static bool SelectUser(ref User user)
         {
             try
             {
-
+                D.Database db = D.DatabaseFactory.CreateDatabase();
+                using (DbCommand cmd = db.GetStoredProcCommand("SelectUser"))
+                {
+                    db.AddInParameter(cmd, "authcode", DbType.String, user.AuthCode);
+                    using (IDataReader dr = db.ExecuteReader(cmd))
+                    {
+                        bool first = true;
+                        while (dr.Read())
+                        {
+                            if (first)
+                            {
+                                user.Age = (string)dr["age"];
+                                user.AuthCode = (string)dr["authcode"];
+                                user.Gender = (string)dr["gender"];
+                                first = false;
+                            }
+                            int tid = (int)dr["testid"];
+                            Test t = null;
+                            if (user.Tests.ContainsKey(tid))
+                                t = user.Tests[tid];
+                            else
+                            {
+                                t = new Test()
+                                {
+                                    ID = tid,
+                                    MaxArraySize = (int)dr["maxarraysize"],
+                                    ArraysPerSize = (int)dr["arrayspersize"],
+                                    DelayPeriod = (int)dr["delayperiod"],
+                                    TimeEst = (int)dr["timeest"]
+                            };
+                                user.Tests.Add(tid, t);
+                            }
+                            t.ImageArrays.Add(new ImageArray()
+                            {
+                                ImagesDisplayed = (int)dr["imagesdisplayed"],
+                                UserInput = (int)dr["userinput"]
+                            });
+                        }
+                    }
+                    return true;
+                }
             }
-            catch (Exception)
+            catch
             {
-
-                throw;
+                return false;
             }
-            D.Database db = D.DatabaseFactory.CreateDatabase();
-            return UpdateUserResult(authcode, testid, ref result, ref db);
         }
-        private static bool UpdateUserResult(string authcode, int testid, ref ImageArray result, ref D.Database db) { }
-        private static bool SelectTest(ref Test test) { }
-        private static bool SelectSettings(ref Settings settings) { }
+        private static bool UpdateUser(ref User user)
+        {
+            try
+            {
+                D.Database db = D.DatabaseFactory.CreateDatabase();
+                using (DbCommand cmd = db.GetStoredProcCommand("UpdateUser"))
+                {
+                    db.AddInParameter(cmd, "authcode", DbType.String, user.AuthCode);
+                    db.AddInParameter(cmd, "gender", DbType.String, user.Gender);
+                    db.AddInParameter(cmd, "age", DbType.String, user.Age);
+                    db.ExecuteNonQuery(cmd);
+                    bool res = true;
+                    foreach (Test test in user.TestResults)
+                    {
+                        foreach (ImageArray result in test.Arrays)
+                        {
+                            res = UpdateUserResult(user.AuthCode, test.ID, result, ref db) && res;
+                        }
+                    }
+                    return res;
+                }
+            }
+            catch
+            {
+                return false;
+            }
+        }
+        private static bool UpdateUserResult(string authcode, int testid, ImageArray result)
+        {
+            try
+            {
+                D.Database db = D.DatabaseFactory.CreateDatabase();
+                return UpdateUserResult(authcode, testid, result, ref db);
+            }
+            catch
+            {
+                return false;
+            }
+        }
+        private static bool UpdateUserResult(string authcode, int testid, ImageArray result, ref D.Database db)
+        {
+            try
+            {
+                using (DbCommand cmd = db.GetStoredProcCommand("UpdateUserResult"))
+                {
+                    db.AddInParameter(cmd, "authcode", DbType.String, authcode);
+                    db.AddInParameter(cmd, "testid", DbType.Int32, testid);
+                    db.AddInParameter(cmd, "imagesdisplayed", DbType.Int32, result.ImagesDisplayed);
+                    db.AddInParameter(cmd, "userinput", DbType.Int32, result.UserInput);
+                    db.ExecuteNonQuery(cmd);
+                    return true;
+                }
+            }
+            catch
+            {
+                return false;
+            }
+        }
+        private static bool SelectTest(ref Test test)
+        {
+            try
+            {
+                D.Database db = D.DatabaseFactory.CreateDatabase();
+                using (DbCommand cmd = db.GetStoredProcCommand("SelectTest"))
+                {
+                    db.AddInParameter(cmd, "id", DbType.String, test.ID);
+                    using (IDataReader dr = db.ExecuteReader(cmd))
+                    {
+                        if (dr.Read())
+                        {
+                            test.MaxArraySize = (int)dr["maxarraysize"];
+                            test.ArraysPerSize = (int)dr["arrayspersize"];
+                            test.DelayPeriod = (int)dr["delayperiod"];
+                            test.TimeEst = (int)dr["timeest"];
+                        }
+                    }
+                    return true;
+                }
+            }
+            catch
+            {
+                return false;
+            }
+        }
+        private static bool SelectSettings(ref Settings settings)
+        {
+            try
+            {
+                D.Database db = D.DatabaseFactory.CreateDatabase();
+                using (DbCommand cmd = db.GetStoredProcCommand("SelectSettings"))
+                {
+                    using (IDataReader dr = db.ExecuteReader(cmd))
+                    {
+                        if (dr.Read())
+                        {
+                            settings.MaxTests = (int)dr["maxtests"];
+                        }
+                    }
+                    return true;
+                }
+            }
+            catch
+            {
+                return false;
+            }
+        }
 
     }
 }

@@ -1,10 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Runtime.Serialization.Json;
-using System.IO;
 using System.Runtime.Serialization;
 namespace Subitize_Test
 {
@@ -13,12 +9,34 @@ namespace Subitize_Test
         [DataMember] public string AuthCode { get; set; }
         [DataMember] public string Gender { get; set; }
         [DataMember] public string Age { get; set; }
-        [DataMember] public Test[] TestResults { get; set; }
+        [DataMember] public Test[] TestResults
+        {
+            get
+            {
+                return Tests.Values.ToArray();
+            }
+            set
+            {
+                Tests.Clear();
+                foreach (Test t in value)
+                {
+                    Tests.Add(t.ID, t);
+                }
+            }
+        }
+        private Dictionary<int, Test> _tests = null;
+        public Dictionary<int, Test> Tests
+        {
+            get
+            {
+                if (_tests == null) _tests = new Dictionary<int, Test>();
+                return _tests;
+            }
+        }
     }
     [DataContract] public class Settings
     {
         [DataMember] public int MaxTests { get; set; }
-        [DataMember] public int TimeEst { get; set; }
     }
     [DataContract] public class Test
     {
@@ -27,6 +45,7 @@ namespace Subitize_Test
         [DataMember] public int MaxArraySize { get; set; }
         [DataMember] public int ArraysPerSize { get; set; }
         [DataMember] public int DelayPeriod { get; set; }
+        [DataMember] public int TimeEst { get; set; }
         [DataMember] public ImageArray[] Arrays
         {
             get
