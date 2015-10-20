@@ -39,6 +39,8 @@ namespace Subitize_Test
         private Random rand = null;
         [DataMember] public int ID { get; set; }
         [DataMember] public int TimeEst { get; set; }
+        [DataMember] public int MaxArraySize { get; set; }
+        [DataMember] public int DelayPeriod { get; set; }
         [DataMember] public ImageArray[] Arrays
         {
             get
@@ -89,9 +91,9 @@ namespace Subitize_Test
             rand = new Random();
             ImageArrays.Clear();
             List<ImageArray> l = new List<ImageArray>();
-            foreach (SubTest test in SubTests)
+            for (int j = 0; j < MaxArraySize; j++)
             {
-                for (int j = 0; j < test.MaxArraySize; j++)
+                foreach (SubTest test in SubTests)
                 {
                     l.Add(new ImageArray()
                     {
@@ -109,9 +111,7 @@ namespace Subitize_Test
     [DataContract] public class SubTest
     {
         [DataMember] public int TestID { get; set; }
-        [DataMember] public int MaxArraySize { get; set; }
         [DataMember] public string ImageFile { get; set; }
-        [DataMember] public int DelayPeriod { get; set; }
     }
     [DataContract] public class ImageArray
     {

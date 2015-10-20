@@ -103,8 +103,10 @@ namespace Subitize_Test
                                 t = new Test()
                                 {
                                     ID = tid,
-                                    TimeEst = (int)dr["timeest"]
-                            };
+                                    TimeEst = (int)dr["timeest"],
+                                    MaxArraySize = (int)dr["maxarraysize"],
+                                    DelayPeriod = (int)dr["delayperiod"]
+                                };
                                 user.Tests.Add(tid, t);
                             }
                             t.ImageArrays.Add(new ImageArray()
@@ -199,12 +201,12 @@ namespace Subitize_Test
                             if (first)
                             {
                                 test.TimeEst = (int)dr["timeest"];
+                                test.MaxArraySize = (int)dr["maxarraysize"];
+                                test.DelayPeriod = (int)dr["delayperiod"];
                                 first = false;
                             }
                             test.SubTests.Add(new SubTest()
                             {
-                                MaxArraySize = (int)dr["maxarraysize"],
-                                DelayPeriod = (int)dr["delayperiod"],
                                 ImageFile = (string)dr["imagefile"],
                                 TestID = test.ID
                             });

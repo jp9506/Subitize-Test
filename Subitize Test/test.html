@@ -9,9 +9,7 @@
     <script type="text/javascript">
         var user = null;
         $(function () {
-            $(".countdown").hide();
-            $(".array").hide();
-            $(".userinput").hide();
+            HideTest();
             Step1();
             $(".dostep2")
                 .click(function () {
@@ -26,14 +24,23 @@
                 });
             $(".dostep3")
                 .click(function () {
-                    var authcode = $.QS["authcode"];
-                    TakeTest_async(authcode)
-                        .success(function (data, textStatus, jqXHR) {
-                            user = data.d;
-                            var test = user.TestResults[0];
-                            $(".testtime").text(test.TimeEst);
-                            Step2();
-                        });
+                    var test = user.TestResults[0];
+                    HideTest();
+                    Step3();
+                    ExecuteTest(test, 0);
+                });
+            $(".submitselection")
+                .click(function () {
+                    var i = $(".array").attr("index");
+                    user.TestResults[0].Arrays[i].UserInput = $(".userselection").val();
+                    i++;
+                    if (i < user.TestResults[0].Arrays.length)
+                        ExecuteTest(user.TestResults[0], i);
+                    else
+                        SetUser_async(user.AuthCode, user)
+                            .success(function (data, textStatus, jqXHR) {
+
+                            });
                 });
         });
         function Step1() {
@@ -48,6 +55,43 @@
             $(".test").show();
             $(".not-test").hide();
         }
+        function HideTest() {
+            $(".countdown").hide();
+            $(".array").hide();
+            $(".userinput").hide();
+        }
+        function ExecuteTest(test, i) {
+            SetupArray(test, i);
+            DoCountdown(3, test.DelayPeriod);
+        }
+        var countdowntimeout = null;
+        function DoCountdown(n, t) {
+            if (n == 0) {
+                clearTimeout(countdowntimeout);
+                $(".countdown").hide();
+                ShowArray(t);
+            } else {
+                $(".countdownsec").text(n);
+                $(".countdown").show();
+                countdowntimeout = setTimeout(DoCountdown(n - 1, t), 1000);
+            }
+        }
+        function SetupArray(test, i) {
+            var array = test.Arrays[i];
+            $(".array").attr("index", i);
+
+        }
+        function ShowArray(t) {
+            $(".array").show();
+            setTimeout(function () {
+                $(".array").hide();
+                ShowUI();
+            }, t);
+        }
+        function ShowUI() {
+            $(".userselection").val(0);
+            $(".userinput").show();
+        }
     </script>
 </head>
 <body>
@@ -60,10 +104,25 @@
         <input type="button" class="dostep3" value="Take Test" />
     </div>
     <div class="test not-instructions not-testinfo">
-        <div class="countdown"></div>
-        <div class="array"></div>
+        <div class="countdown">
+            <span class="countdownsec"></span>
+        </div>
+        <div class="array" index="0"></div>
         <div class="userinput">
-            <select class="userselection"></select>
+            <select class="userselection">
+                <option value="0" selected>0</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+                <option value="9">9</option>
+                <option value="10">10</option>
+            </select>
+            <input type="button" class="submitselection" value="Submit" />
         </div>
     </div>
 </body>
