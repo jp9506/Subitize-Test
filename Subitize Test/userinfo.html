@@ -1,0 +1,53 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>User Info</title>
+	<meta charset="utf-8" />
+    <link href="CSS/jquery-ui.min.css" rel="stylesheet" />
+    <script type="text/javascript" src="Scripts/jquery-2.1.4.min.js"></script>
+    <script type="text/javascript" src="Scripts/jquery-qs.min.js"></script>
+    <script type="text/javascript" src="Scripts/webservices.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            $(".userinfobutton")
+                .click(function () {
+                    var authcode = $.QS["authcode"];
+                    GetUser_async(authcode)
+                        .success(function (data, textStatus, jqXHR) {
+                            var user = data.d;
+                            user.Gender = $(".gender").val();
+                            user.Age = $(".age").val();
+                            SetUser_async(authcode, user)
+                                .success(function (data, textStatus, jqXHR) {
+                                    window.location.replace("test.html?authcode=" + authcode);
+                                });
+                        });
+                });
+            var authcode = $.QS["authcode"];
+            GetUser_async(authcode)
+                .success(function (data, textStatus, jqXHR) {
+                    var user = data.d;
+                    $(".gender").val(user.Gender);
+                    $(".age").val(user.Age);
+                });
+        });
+    </script>
+</head>
+<body>
+    <div>
+        <p>Gender:</p>
+        <select class="gender">
+            <option value="M">Male</option>
+            <option value="F">Female</option>
+        </select>
+        <p>Age:</p>
+        <select class="age">
+            <option value="0-15">Under 15</option>
+            <option value="15-30">15 - 30</option>
+            <option value="30-55">30 - 55</option>
+            <option value="55+">Over 55</option>
+        </select>
+        <input type="button" class="userinfobutton" value="Submit"/>
+    </div>
+</body>
+</html>

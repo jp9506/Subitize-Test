@@ -1,4 +1,4 @@
-﻿using D = Microsoft.Practices.EnterpriseLibrary.Data;
+﻿using Microsoft.Practices.EnterpriseLibrary.Data.Sql;
 using System.Data.Common;
 using System.Data;
 
@@ -22,14 +22,6 @@ namespace Subitize_Test
             else
                 return false;
         }
-        public static Settings GetSettings()
-        {
-            Settings settings = new Settings();
-            if (SelectSettings(ref settings))
-                return settings;
-            else
-                return null;
-        }
         public static Test GetTestByID(int id)
         {
             Test test = new Test() { ID = id };
@@ -39,12 +31,33 @@ namespace Subitize_Test
                 return null;
         }
         public static bool SaveUser(User user) => UpdateUser(ref user);
+        public static int GetMaxTestID()
+        {
+            try
+            {
+                int result = 0;
+                SqlDatabase db = new SqlDatabase(Properties.Settings.Default.connString);
+                using (DbCommand cmd = db.GetStoredProcCommand("SelectMaxTest"))
+                {
+                    object o = db.ExecuteScalar(cmd);
+                    if (o == null)
+                        result = 0;
+                    else
+                        result = (int)o;
+                    return result;
+                }
+            }
+            catch
+            {
+                return 0;
+            }
+        }
 
         private static bool IsUser(string authcode, ref bool result)
         {
             try
             {
-                D.Database db = D.DatabaseFactory.CreateDatabase();
+                SqlDatabase db = new SqlDatabase(Properties.Settings.Default.connString);
                 using (DbCommand cmd = db.GetStoredProcCommand("IsUser"))
                 {
                     db.AddInParameter(cmd, "authcode", DbType.String, authcode);
@@ -65,7 +78,7 @@ namespace Subitize_Test
         {
             try
             {
-                D.Database db = D.DatabaseFactory.CreateDatabase();
+                SqlDatabase db = new SqlDatabase(Properties.Settings.Default.connString);
                 using (DbCommand cmd = db.GetStoredProcCommand("SelectUser"))
                 {
                     db.AddInParameter(cmd, "authcode", DbType.String, user.AuthCode);
@@ -90,17 +103,16 @@ namespace Subitize_Test
                                 t = new Test()
                                 {
                                     ID = tid,
-                                    MaxArraySize = (int)dr["maxarraysize"],
-                                    ArraysPerSize = (int)dr["arrayspersize"],
-                                    DelayPeriod = (int)dr["delayperiod"],
                                     TimeEst = (int)dr["timeest"]
                             };
                                 user.Tests.Add(tid, t);
                             }
                             t.ImageArrays.Add(new ImageArray()
                             {
+                                Index = (int)dr["index"],
                                 ImagesDisplayed = (int)dr["imagesdisplayed"],
-                                UserInput = (int)dr["userinput"]
+                                UserInput = (int)dr["userinput"],
+                                ImageFile = (string)dr["imagefile"]
                             });
                         }
                     }
@@ -116,7 +128,7 @@ namespace Subitize_Test
         {
             try
             {
-                D.Database db = D.DatabaseFactory.CreateDatabase();
+                SqlDatabase db = new SqlDatabase(Properties.Settings.Default.connString);
                 using (DbCommand cmd = db.GetStoredProcCommand("UpdateUser"))
                 {
                     db.AddInParameter(cmd, "authcode", DbType.String, user.AuthCode);
@@ -143,7 +155,7 @@ namespace Subitize_Test
         {
             try
             {
-                D.Database db = D.DatabaseFactory.CreateDatabase();
+                SqlDatabase db = new SqlDatabase(Properties.Settings.Default.connString);
                 return UpdateUserResult(authcode, testid, result, ref db);
             }
             catch
@@ -151,7 +163,7 @@ namespace Subitize_Test
                 return false;
             }
         }
-        private static bool UpdateUserResult(string authcode, int testid, ImageArray result, ref D.Database db)
+        private static bool UpdateUserResult(string authcode, int testid, ImageArray result, ref SqlDatabase db)
         {
             try
             {
@@ -161,6 +173,7 @@ namespace Subitize_Test
                     db.AddInParameter(cmd, "testid", DbType.Int32, testid);
                     db.AddInParameter(cmd, "imagesdisplayed", DbType.Int32, result.ImagesDisplayed);
                     db.AddInParameter(cmd, "userinput", DbType.Int32, result.UserInput);
+                    db.AddInParameter(cmd, "imagefile", DbType.String, result.ImageFile);
                     db.ExecuteNonQuery(cmd);
                     return true;
                 }
@@ -174,18 +187,27 @@ namespace Subitize_Test
         {
             try
             {
-                D.Database db = D.DatabaseFactory.CreateDatabase();
+                SqlDatabase db = new SqlDatabase(Properties.Settings.Default.connString);
                 using (DbCommand cmd = db.GetStoredProcCommand("SelectTest"))
                 {
                     db.AddInParameter(cmd, "id", DbType.String, test.ID);
                     using (IDataReader dr = db.ExecuteReader(cmd))
                     {
-                        if (dr.Read())
+                        bool first = true;
+                        while (dr.Read())
                         {
-                            test.MaxArraySize = (int)dr["maxarraysize"];
-                            test.ArraysPerSize = (int)dr["arrayspersize"];
-                            test.DelayPeriod = (int)dr["delayperiod"];
-                            test.TimeEst = (int)dr["timeest"];
+                            if (first)
+                            {
+                                test.TimeEst = (int)dr["timeest"];
+                                first = false;
+                            }
+                            test.SubTests.Add(new SubTest()
+                            {
+                                MaxArraySize = (int)dr["maxarraysize"],
+                                DelayPeriod = (int)dr["delayperiod"],
+                                ImageFile = (string)dr["imagefile"],
+                                TestID = test.ID
+                            });
                         }
                     }
                     return true;
@@ -196,28 +218,5 @@ namespace Subitize_Test
                 return false;
             }
         }
-        private static bool SelectSettings(ref Settings settings)
-        {
-            try
-            {
-                D.Database db = D.DatabaseFactory.CreateDatabase();
-                using (DbCommand cmd = db.GetStoredProcCommand("SelectSettings"))
-                {
-                    using (IDataReader dr = db.ExecuteReader(cmd))
-                    {
-                        if (dr.Read())
-                        {
-                            settings.MaxTests = (int)dr["maxtests"];
-                        }
-                    }
-                    return true;
-                }
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
     }
 }

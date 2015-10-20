@@ -52,17 +52,6 @@ function SetUser(authcode, user) {
 function SetUser_async(authcode, user) {
     return ajax("SetUser", JSON.stringify({ authcode: authcode, user: user }));
 }
-function GetSettings() {
-    var res = null;
-    get("GetSettings", "")
-        .success(function (data, textStatus, jqXHR) {
-            res = data.d;
-        });
-    return res;
-}
-function GetSettings_async() {
-    return ajax("GetSettings", "");
-}
 function GetTest(id) {
     var res = null;
     get("GetTest", JSON.stringify({ id: id }))
@@ -73,4 +62,15 @@ function GetTest(id) {
 }
 function GetTest_async(id) {
     return ajax("GetTest", JSON.stringify({ id: id }));
+}
+function TakeTest(authcode) {
+    var res = null;
+    get("TakeTest", JSON.stringify({ authcode: authcode }))
+        .success(function (data, textStatus, jqXHR) {
+            res = data.d;
+        });
+    return res;
+}
+function TakeTest_async(authcode) {
+    return ajax("TakeTest", JSON.stringify({ authcode: authcode }));
 }

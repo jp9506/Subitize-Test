@@ -34,17 +34,10 @@ namespace Subitize_Test
             }
         }
     }
-    [DataContract] public class Settings
-    {
-        [DataMember] public int MaxTests { get; set; }
-    }
     [DataContract] public class Test
     {
         private Random rand = null;
         [DataMember] public int ID { get; set; }
-        [DataMember] public int MaxArraySize { get; set; }
-        [DataMember] public int ArraysPerSize { get; set; }
-        [DataMember] public int DelayPeriod { get; set; }
         [DataMember] public int TimeEst { get; set; }
         [DataMember] public ImageArray[] Arrays
         {
@@ -58,6 +51,19 @@ namespace Subitize_Test
                 ImageArrays.AddRange(value);
             }
         }
+        [DataMember] public SubTest[] TestParts
+        {
+            get
+            {
+                return SubTests.ToArray();
+            }
+            set
+            {
+                SubTests.Clear();
+                SubTests.AddRange(value);
+            }
+        }
+
         private List<ImageArray> _arrays = null;
         public List<ImageArray> ImageArrays
         {
@@ -68,28 +74,50 @@ namespace Subitize_Test
                 return _arrays;
             }
         }
+        private List<SubTest> _subtests = null;
+        public List<SubTest> SubTests
+        {
+            get
+            {
+                if (_subtests == null)
+                    _subtests = new List<SubTest>();
+                return _subtests;
+            }
+        }
         public void GenerateArrays()
         {
             rand = new Random();
             ImageArrays.Clear();
             List<ImageArray> l = new List<ImageArray>();
-            for (int i = 0; i < MaxArraySize; i++)
+            foreach (SubTest test in SubTests)
             {
-                for (int j = 0; j < ArraysPerSize; j++)
+                for (int j = 0; j < test.MaxArraySize; j++)
                 {
                     l.Add(new ImageArray()
                     {
-                        ImagesDisplayed = i,
-                        UserInput = 0
+                        ImagesDisplayed = j,
+                        UserInput = -1,
+                        ImageFile = test.ImageFile
                     });
                 }
             }
             ImageArrays.AddRange(l.OrderBy(x => rand.Next()).ToArray());
+            int indx = 0;
+            ImageArrays.ForEach((x) => { x.Index = indx; indx++; });
         }
+    }
+    [DataContract] public class SubTest
+    {
+        [DataMember] public int TestID { get; set; }
+        [DataMember] public int MaxArraySize { get; set; }
+        [DataMember] public string ImageFile { get; set; }
+        [DataMember] public int DelayPeriod { get; set; }
     }
     [DataContract] public class ImageArray
     {
+        [DataMember] public int Index { get; set; }
         [DataMember] public int ImagesDisplayed { get; set; }
         [DataMember] public int UserInput { get; set; }
+        [DataMember] public string ImageFile { get; set; }
     }
 }

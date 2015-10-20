@@ -1,0 +1,35 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Enter Authorization Code</title>
+	<meta charset="utf-8" />
+    <link href="CSS/jquery-ui.min.css" rel="stylesheet" />
+    <script type="text/javascript" src="Scripts/jquery-2.1.4.min.js"></script>
+    <script type="text/javascript" src="Scripts/webservices.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            $(".authbutton")
+                .click(function () {
+                    var txt = $(".authcode").val();
+                    ValidateAuthCode_async(txt)
+                        .success(function (data, textStatus, jqXHR) {
+                            var res = data.d;
+                            if (res) {
+                                window.location.replace("userinfo.html?authcode=" + txt);
+                            } else {
+                                AuthCodeInvalid();
+                            }
+                        })
+                });
+        });
+        function AuthCodeInvalid() {}
+    </script>
+</head>
+<body>
+    <div>
+        <p>Please enter your authorization code.</p>
+        <input type="text" class="authcode" />
+        <input type="button" class="authbutton" value="Submit"/>
+    </div>
+</body>
+</html>

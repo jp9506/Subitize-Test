@@ -1,0 +1,70 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Welcome</title>
+	<meta charset="utf-8" />
+    <link href="CSS/jquery-ui.min.css" rel="stylesheet" />
+    <script type="text/javascript" src="Scripts/jquery-2.1.4.min.js"></script>
+    <script type="text/javascript" src="Scripts/webservices.js"></script>
+    <script type="text/javascript">
+        var user = null;
+        $(function () {
+            $(".countdown").hide();
+            $(".array").hide();
+            $(".userinput").hide();
+            Step1();
+            $(".dostep2")
+                .click(function () {
+                    var authcode = $.QS["authcode"];
+                    TakeTest_async(authcode)
+                        .success(function (data, textStatus, jqXHR) {
+                            user = data.d;
+                            var test = user.TestResults[0];
+                            $(".testtime").text(test.TimeEst);
+                            Step2();
+                        });
+                });
+            $(".dostep3")
+                .click(function () {
+                    var authcode = $.QS["authcode"];
+                    TakeTest_async(authcode)
+                        .success(function (data, textStatus, jqXHR) {
+                            user = data.d;
+                            var test = user.TestResults[0];
+                            $(".testtime").text(test.TimeEst);
+                            Step2();
+                        });
+                });
+        });
+        function Step1() {
+            $(".instructions").show();
+            $(".not-instructions").hide();
+        }
+        function Step2() {
+            $(".testinfo").show();
+            $(".not-testinfo").hide();
+        }
+        function Step3() {
+            $(".test").show();
+            $(".not-test").hide();
+        }
+    </script>
+</head>
+<body>
+    <div class="instructions not-testinfo not-test">
+        <p>Here's some basic intructions</p>
+        <input type="button" class="dostep2" value="Proceed" />
+    </div>
+    <div class="testinfo not-instructions not-test">
+        <p>This test should take approximately <span class="testtime"></span> minutes to complete</p>
+        <input type="button" class="dostep3" value="Take Test" />
+    </div>
+    <div class="test not-instructions not-testinfo">
+        <div class="countdown"></div>
+        <div class="array"></div>
+        <div class="userinput">
+            <select class="userselection"></select>
+        </div>
+    </div>
+</body>
+</html>
