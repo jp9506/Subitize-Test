@@ -4,6 +4,7 @@
     <title>Testing</title>
 	<meta charset="utf-8" />
     <link href="CSS/jquery-ui.min.css" rel="stylesheet" />
+    <link href="CSS/main.css" rel="stylesheet" />
     <script type="text/javascript" src="Scripts/jquery-2.1.4.min.js"></script>
     <script type="text/javascript" src="Scripts/jquery-qs.min.js"></script>
     <script type="text/javascript" src="Scripts/webservices.js"></script>
@@ -104,6 +105,7 @@
         }
         function CreateGrid(n) {
             $(".grid").empty();
+            var w = Math.floor(100 / n);
             for (var i = 0; i < n; i++) {
                 var tr = $("<tr></tr>");
                 $(".grid").append(tr);
@@ -113,6 +115,9 @@
                     $(tr).append(td);
                 }
             }
+            $(".grid td")
+                .width(w + "%")
+                .height(w + "%");
         }
         function SetupArray(test, i) {
             var array = test.Arrays[i];
@@ -139,6 +144,11 @@
             $(".userinput").show();
         }
     </script>
+    <style>
+        .countdown {
+            font-size:4em;
+        }
+    </style>
 </head>
 <body>
     <div class="instructions not-testinfo not-test not-done">
