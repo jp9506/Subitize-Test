@@ -1,10 +1,11 @@
 ﻿<!DOCTYPE html>
 <html>
 <head>
-    <title>Welcome</title>
+    <title>Testing</title>
 	<meta charset="utf-8" />
     <link href="CSS/jquery-ui.min.css" rel="stylesheet" />
     <script type="text/javascript" src="Scripts/jquery-2.1.4.min.js"></script>
+    <script type="text/javascript" src="Scripts/jquery-qs.min.js"></script>
     <script type="text/javascript" src="Scripts/webservices.js"></script>
     <script type="text/javascript">
         var user = null;
@@ -16,7 +17,7 @@
                     var authcode = $.QS["authcode"];
                     TakeTest_async(authcode)
                         .success(function (data, textStatus, jqXHR) {
-                            user = data.d;
+                            user = JSON.parse(data.d);
                             var test = user.TestResults[0];
                             $(".testtime").text(test.TimeEst);
                             Step2();
@@ -27,6 +28,7 @@
                     var test = user.TestResults[0];
                     HideTest();
                     Step3();
+                    CreateGrid(test.MaxArraySize);
                     ExecuteTest(test, 0);
                 });
             $(".submitselection")
@@ -34,13 +36,33 @@
                     var i = $(".array").attr("index");
                     user.TestResults[0].Arrays[i].UserInput = $(".userselection").val();
                     i++;
-                    if (i < user.TestResults[0].Arrays.length)
+                    HideTest();
+                    if (i < user.TestResults[0].Arrays.length) {
                         ExecuteTest(user.TestResults[0], i);
-                    else
+                    } else
                         SetUser_async(user.AuthCode, user)
                             .success(function (data, textStatus, jqXHR) {
-
+                                HasTest_async(user.AuthCode)
+                                    .success(function (data, textStatus, jqXHR) {
+                                        var res = data.d;
+                                        if (res)
+                                            $(".dostep1").show();
+                                        else
+                                            $(".dostep1").hide();
+                                        Step4();
+                                    });
                             });
+                });
+            $(".dostep1")
+                .click(function () {
+                    user = null;
+                    HideTest();
+                    Step1();
+                });
+            $(".thankyou")
+                .click(function () {
+                    var authcode = $.QS["authcode"];
+                    window.location.replace("thankyou.html?authcode=" + authcode);
                 });
         });
         function Step1() {
@@ -54,6 +76,10 @@
         function Step3() {
             $(".test").show();
             $(".not-test").hide();
+        }
+        function Step4() {
+            $(".done").show();
+            $(".not-done").hide();
         }
         function HideTest() {
             $(".countdown").hide();
@@ -73,13 +99,33 @@
             } else {
                 $(".countdownsec").text(n);
                 $(".countdown").show();
-                countdowntimeout = setTimeout(DoCountdown(n - 1, t), 1000);
+                countdowntimeout = setTimeout(function () { DoCountdown(n - 1, t); }, 1000);
+            }
+        }
+        function CreateGrid(n) {
+            $(".grid").empty();
+            for (var i = 0; i < n; i++) {
+                var tr = $("<tr></tr>");
+                $(".grid").append(tr);
+                for (var j = 0; j < n; j++) {
+                    var x = n * i + j;
+                    var td = $("<td></td>").addClass("cell" + x);
+                    $(tr).append(td);
+                }
             }
         }
         function SetupArray(test, i) {
             var array = test.Arrays[i];
             $(".array").attr("index", i);
-
+            $(".grid img").remove();
+            var cells = new Array();
+            for (var i = 0; i < array.ImagesDisplayed; i++) {
+                var c = Math.floor(Math.random() * test.MaxArraySize * test.MaxArraySize);
+                while (cells.indexOf(c) != -1)
+                    c = Math.floor(Math.random() * test.MaxArraySize * test.MaxArraySize);
+                cells.push(c);
+                $(".cell" + c).append($("<img/>").attr("src", array.ImageFile))
+            }
         }
         function ShowArray(t) {
             $(".array").show();
@@ -95,19 +141,21 @@
     </script>
 </head>
 <body>
-    <div class="instructions not-testinfo not-test">
+    <div class="instructions not-testinfo not-test not-done">
         <p>Here's some basic intructions</p>
         <input type="button" class="dostep2" value="Proceed" />
     </div>
-    <div class="testinfo not-instructions not-test">
+    <div class="testinfo not-instructions not-test not-done">
         <p>This test should take approximately <span class="testtime"></span> minutes to complete</p>
         <input type="button" class="dostep3" value="Take Test" />
     </div>
-    <div class="test not-instructions not-testinfo">
+    <div class="test not-instructions not-testinfo not-done">
         <div class="countdown">
             <span class="countdownsec"></span>
         </div>
-        <div class="array" index="0"></div>
+        <div class="array" index="0">
+            <table class="grid"></table>
+        </div>
         <div class="userinput">
             <select class="userselection">
                 <option value="0" selected>0</option>
@@ -124,6 +172,10 @@
             </select>
             <input type="button" class="submitselection" value="Submit" />
         </div>
+    </div>
+    <div class="done not-instructions not-testinfo not-test">
+        <input type="button" class="dostep1" value="Take another test" />
+        <input type="button" class="thankyou" value="Exit" />
     </div>
 </body>
 </html>

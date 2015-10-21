@@ -56,16 +56,29 @@ namespace Subitize_Test
                 Age = u.Age
             };
             int mid = Database.GetMaxTestID();
-            List<int> lid = new List<int>();
-            for (int i = 1; i <= mid; i++)
+            int tid = 1;
+            while (u.Tests.ContainsKey(tid))
+                tid++;
+            if (tid <= mid)
             {
-                lid.Add(i);
+                Test t = Database.GetTestByID(tid);
+                t.GenerateArrays();
+                testuser.Tests.Add(t.ID, t);
+                return JSON<User>.Parse(testuser);
+            } else
+            {
+                return JSON<User>.Parse((User)null);
             }
-            int tid = lid.Where(x => !u.Tests.ContainsKey(x)).Min();
-            Test t = Database.GetTestByID(tid);
-            t.GenerateArrays();
-            testuser.Tests.Add(t.ID, t);
-            return JSON<User>.Parse(testuser);
+        }
+        [WebMethod]
+        public bool HasTest(string authcode)
+        {
+            User u = Database.GetUserByAuthCode(authcode);
+            int mid = Database.GetMaxTestID();
+            int tid = 1;
+            while (u.Tests.ContainsKey(tid))
+                tid++;
+            return tid <= mid;
         }
     }
 }

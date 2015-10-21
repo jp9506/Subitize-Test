@@ -91,7 +91,7 @@ namespace Subitize_Test
             rand = new Random();
             ImageArrays.Clear();
             List<ImageArray> l = new List<ImageArray>();
-            for (int j = 0; j < MaxArraySize; j++)
+            for (int j = 1; j <= MaxArraySize; j++)
             {
                 foreach (SubTest test in SubTests)
                 {

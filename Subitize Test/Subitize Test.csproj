@@ -101,6 +101,7 @@
     <Content Include="Images\3.jpg" />
     <Content Include="Images\4.jpg" />
     <Content Include="Images\5.jpg" />
+    <Content Include="thankyou.html" />
     <Content Include="Scripts\jquery-qs.min.js" />
     <Content Include="userinfo.html" />
     <Content Include="test.html" />

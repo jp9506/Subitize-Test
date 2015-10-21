@@ -34,7 +34,7 @@ function GetUser(authcode) {
     var res = null;
     get("GetUser", JSON.stringify({ authcode: authcode }))
         .success(function (data, textStatus, jqXHR) {
-            res = data.d;
+            res = JSON.parse(data.d);
         });
     return res;
 }
@@ -43,20 +43,20 @@ function GetUser_async(authcode) {
 }
 function SetUser(authcode, user) {
     var res = null;
-    get("SetUser", JSON.stringify({ authcode: authcode, user: user }))
+    get("SetUser", JSON.stringify({ authcode: authcode, user: JSON.stringify(user) }))
         .success(function (data, textStatus, jqXHR) {
-            res = data.d;
+            res = JSON.parse(data.d);
         });
     return res;
 }
 function SetUser_async(authcode, user) {
-    return ajax("SetUser", JSON.stringify({ authcode: authcode, user: user }));
+    return ajax("SetUser", JSON.stringify({ authcode: authcode, user: JSON.stringify(user) }));
 }
 function GetTest(id) {
     var res = null;
     get("GetTest", JSON.stringify({ id: id }))
         .success(function (data, textStatus, jqXHR) {
-            res = data.d;
+            res = JSON.parse(data.d);
         });
     return res;
 }
@@ -67,10 +67,21 @@ function TakeTest(authcode) {
     var res = null;
     get("TakeTest", JSON.stringify({ authcode: authcode }))
         .success(function (data, textStatus, jqXHR) {
-            res = data.d;
+            res = JSON.parse(data.d);
         });
     return res;
 }
 function TakeTest_async(authcode) {
     return ajax("TakeTest", JSON.stringify({ authcode: authcode }));
+}
+function HasTest(authcode) {
+    var res = false;
+    get("HasTest", JSON.stringify({ authcode: authcode }))
+        .success(function (data, textStatus, jqXHR) {
+            res = data.d;
+        });
+    return res;
+}
+function HasTest_async(authcode) {
+    return ajax("HasTest", JSON.stringify({ authcode: authcode }));
 }

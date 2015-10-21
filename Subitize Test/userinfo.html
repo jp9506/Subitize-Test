@@ -14,7 +14,7 @@
                     var authcode = $.QS["authcode"];
                     GetUser_async(authcode)
                         .success(function (data, textStatus, jqXHR) {
-                            var user = data.d;
+                            var user = JSON.parse(data.d);
                             user.Gender = $(".gender").val();
                             user.Age = $(".age").val();
                             SetUser_async(authcode, user)
@@ -26,7 +26,7 @@
             var authcode = $.QS["authcode"];
             GetUser_async(authcode)
                 .success(function (data, textStatus, jqXHR) {
-                    var user = data.d;
+                    var user = JSON.parse(data.d);
                     $(".gender").val(user.Gender);
                     $(".age").val(user.Age);
                 });

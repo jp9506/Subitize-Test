@@ -39,11 +39,11 @@ namespace Subitize_Test
                 SqlDatabase db = new SqlDatabase(Properties.Settings.Default.connString);
                 using (DbCommand cmd = db.GetStoredProcCommand("SelectMaxTest"))
                 {
-                    object o = db.ExecuteScalar(cmd);
+                    int? o = db.ExecuteScalar(cmd) as int?;
                     if (o == null)
                         result = 0;
                     else
-                        result = (int)o;
+                        result = o.Value;
                     return result;
                 }
             }
@@ -61,11 +61,11 @@ namespace Subitize_Test
                 using (DbCommand cmd = db.GetStoredProcCommand("IsUser"))
                 {
                     db.AddInParameter(cmd, "authcode", DbType.String, authcode);
-                    object o = db.ExecuteScalar(cmd);
+                    int? o = db.ExecuteScalar(cmd) as int?;
                     if (o == null)
                         result = false;
                     else
-                        result = (bool)o;
+                        result = (o.Value == 1);
                     return true;
                 }
             }
@@ -89,33 +89,36 @@ namespace Subitize_Test
                         {
                             if (first)
                             {
-                                user.Age = (string)dr["age"];
-                                user.AuthCode = (string)dr["authcode"];
-                                user.Gender = (string)dr["gender"];
+                                user.Age = dr["age"] as string;
+                                user.AuthCode = dr["authcode"] as string;
+                                user.Gender = dr["gender"] as string;
                                 first = false;
                             }
-                            int tid = (int)dr["testid"];
-                            Test t = null;
-                            if (user.Tests.ContainsKey(tid))
-                                t = user.Tests[tid];
-                            else
+                            int? tid = dr["testid"] as int?;
+                            if (tid != null)
                             {
-                                t = new Test()
+                                Test t = null;
+                                if (user.Tests.ContainsKey(tid.Value))
+                                    t = user.Tests[tid.Value];
+                                else
                                 {
-                                    ID = tid,
-                                    TimeEst = (int)dr["timeest"],
-                                    MaxArraySize = (int)dr["maxarraysize"],
-                                    DelayPeriod = (int)dr["delayperiod"]
-                                };
-                                user.Tests.Add(tid, t);
+                                    t = new Test()
+                                    {
+                                        ID = tid.Value,
+                                        TimeEst = (int)dr["timeest"],
+                                        MaxArraySize = (int)dr["maxarraysize"],
+                                        DelayPeriod = (int)dr["delayperiod"]
+                                    };
+                                    user.Tests.Add(tid.Value, t);
+                                }
+                                t.ImageArrays.Add(new ImageArray()
+                                {
+                                    Index = (int)dr["index"],
+                                    ImagesDisplayed = (int)dr["imagesdisplayed"],
+                                    UserInput = (int)dr["userinput"],
+                                    ImageFile = (string)dr["imagefile"]
+                                });
                             }
-                            t.ImageArrays.Add(new ImageArray()
-                            {
-                                Index = (int)dr["index"],
-                                ImagesDisplayed = (int)dr["imagesdisplayed"],
-                                UserInput = (int)dr["userinput"],
-                                ImageFile = (string)dr["imagefile"]
-                            });
                         }
                     }
                     return true;
@@ -176,6 +179,7 @@ namespace Subitize_Test
                     db.AddInParameter(cmd, "imagesdisplayed", DbType.Int32, result.ImagesDisplayed);
                     db.AddInParameter(cmd, "userinput", DbType.Int32, result.UserInput);
                     db.AddInParameter(cmd, "imagefile", DbType.String, result.ImageFile);
+                    db.AddInParameter(cmd, "index", DbType.Int32, result.Index);
                     db.ExecuteNonQuery(cmd);
                     return true;
                 }
@@ -207,7 +211,7 @@ namespace Subitize_Test
                             }
                             test.SubTests.Add(new SubTest()
                             {
-                                ImageFile = (string)dr["imagefile"],
+                                ImageFile = dr["imagefile"] as string,
                                 TestID = test.ID
                             });
                         }
