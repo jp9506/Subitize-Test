@@ -11,6 +11,7 @@
     <script type="text/javascript">
         var user = null;
         $(function () {
+            SetupUIGrid(2, 4);
             HideTest();
             Step1();
             $(".dostep2")
@@ -66,6 +67,41 @@
                     window.location.replace("thankyou.html?authcode=" + authcode);
                 });
         });
+        function SetupUIGrid(h, w) {
+            $(".uigrid").empty();
+            for (var i = 0; i < h; i++) {
+                var tr = $("<tr></tr>");
+                $(".uigrid").append(tr);
+                for (var j = 0; j < w; j++) {
+                    var td = $("<td></td>");
+                    var btn = $("<input type='button' />").attr("value", w * i + j + 1);
+                    $(td).append(btn);
+                    $(tr).append(td);
+                }
+            }
+            $(".uigrid input[type=button]")
+                .click(function () {
+                    var i = $(".array").attr("index");
+                    user.TestResults[0].Arrays[i].UserInput = $(this).attr("value");
+                    i++;
+                    HideTest();
+                    if (i < user.TestResults[0].Arrays.length) {
+                        ExecuteTest(user.TestResults[0], i);
+                    } else
+                        SetUser_async(user.AuthCode, user)
+                            .success(function (data, textStatus, jqXHR) {
+                                HasTest_async(user.AuthCode)
+                                    .success(function (data, textStatus, jqXHR) {
+                                        var res = data.d;
+                                        if (res)
+                                            $(".dostep1").show();
+                                        else
+                                            $(".dostep1").hide();
+                                        Step4();
+                                    });
+                            });
+                });
+        }
         function Step1() {
             $(".instructions").show();
             $(".not-instructions").hide();
@@ -140,7 +176,7 @@
             }, t);
         }
         function ShowUI() {
-            $(".userselection").val(0);
+            //$(".userselection").val(0);
             $(".userinput").show();
         }
     </script>
@@ -148,11 +184,29 @@
         .countdown {
             font-size:4em;
         }
+        .userinput {
+            position: absolute;
+            top:0%;
+            bottom:0%;
+            width:100%;
+        }
+        .uigrid {
+            height:100%;
+            width:100%;
+        }
+        .uigrid input[type=button] {
+            height:100%;
+            width:100%;
+            font-size:4em;
+        }
     </style>
 </head>
 <body>
     <div class="instructions not-testinfo not-test not-done">
-        <p>Here's some basic intructions</p>
+        <p>After a 3-2-1 countdown, an array of objects</p>
+        <p>will be quickly displayed.  After the display is cleared</p>
+        <p>select the number of objects you think you saw</p>
+        <p>from the drop-down selection box</p>	
         <input type="button" class="dostep2" value="Proceed" />
     </div>
     <div class="testinfo not-instructions not-test not-done">
@@ -167,20 +221,7 @@
             <table class="grid"></table>
         </div>
         <div class="userinput">
-            <select class="userselection">
-                <option value="0" selected>0</option>
-                <option value="1">1</option>
-                <option value="2">2</option>
-                <option value="3">3</option>
-                <option value="4">4</option>
-                <option value="5">5</option>
-                <option value="6">6</option>
-                <option value="7">7</option>
-                <option value="8">8</option>
-                <option value="9">9</option>
-                <option value="10">10</option>
-            </select>
-            <input type="button" class="submitselection" value="Submit" />
+            <table class="uigrid"></table>
         </div>
     </div>
     <div class="done not-instructions not-testinfo not-test">
